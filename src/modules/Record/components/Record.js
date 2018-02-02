@@ -11,12 +11,6 @@ import DeleteIcon from 'assets/delete.svg';
 import MicIcon from 'assets/mic.svg';
 import MicRedIcon from 'assets/mic-red.svg';
 
-import RecordModel from 'store/models/RecordModel';
-import {
-    addRecord,
-    startRecording
-    } from 'store/reducers/recorder';
-
 import './Record.scss';
 
 const browserHasSpeechRecognition = 'webkitSpeechRecognition' in window;
@@ -242,7 +236,6 @@ export default class RecordItem extends Component {
                 <img className='record-sync-icon' src={ExportIcon} alt='Split' />
             </span>
         )
-
 
         return (
             <div className={className} data-cuid={record.cuid} ref={e => this.recordElement = e}>
