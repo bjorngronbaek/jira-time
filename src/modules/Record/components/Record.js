@@ -11,6 +11,12 @@ import DeleteIcon from 'assets/delete.svg';
 import MicIcon from 'assets/mic.svg';
 import MicRedIcon from 'assets/mic-red.svg';
 
+import RecordModel from 'store/models/RecordModel';
+import {
+    addRecord,
+    startRecording
+    } from 'store/reducers/recorder';
+
 import './Record.scss';
 
 const browserHasSpeechRecognition = 'webkitSpeechRecognition' in window;
@@ -24,6 +30,7 @@ export default class RecordItem extends Component {
         setRecordDate: PropTypes.func.isRequired,
         setRecordComment: PropTypes.func.isRequired,
         stopRecording: PropTypes.func.isRequired,
+        splitRecord: PropTypes.func.isRequired,
         activeRecord: PropTypes.object,
         movingRecord: PropTypes.object,
         movingTask: PropTypes.object,
@@ -39,6 +46,7 @@ export default class RecordItem extends Component {
         this.onCommentKeyDown = this.onCommentKeyDown.bind(this);
         this.onSyncClick = this.onSyncClick.bind(this);
         this.onStopRecordingClick = this.onStopRecordingClick.bind(this);
+        this.onSplitRecordClick = this.onSplitRecordClick.bind(this);
         this.onSpeechRecordClick = this.onSpeechRecordClick.bind(this);
         this.onCommentChange = this.onCommentChange.bind(this);
 
@@ -127,6 +135,13 @@ export default class RecordItem extends Component {
 
     onStopRecordingClick () {
         this.props.stopRecording();
+    }
+
+    onSplitRecordClick () {
+        this.props.splitRecord({
+            cuid: this.props.record.cuid,
+            task: this.props.task
+        });
     }
 
     onSyncClick () {
@@ -222,6 +237,13 @@ export default class RecordItem extends Component {
             );
         }
 
+        let btnSplit = (
+            <span className='record-sync' title='Split this worklog' onClick={this.onSplitRecordClick}>
+                <img className='record-sync-icon' src={ExportIcon} alt='Split' />
+            </span>
+        )
+
+
         return (
             <div className={className} data-cuid={record.cuid} ref={e => this.recordElement = e}>
                 <button tabIndex='-1' className='record-remove' onClick={this.onRemoveClick} disabled={record.syncing}>
@@ -257,6 +279,7 @@ export default class RecordItem extends Component {
                 />
                 {btnMic}
                 {btnSync}
+                {btnSplit}
             </div>
         );
     }

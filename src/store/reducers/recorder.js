@@ -16,6 +16,7 @@ const initialState = {
 export const ADD_RECORDING = 'ADD_RECORDING';
 export const START_RECORDING = 'START_RECORDING';
 export const STOP_RECORDING = 'STOP_RECORDING';
+export const SPLIT_RECORD = 'SPLIT_RECORD';
 export const SET_RECORD_SYNC = 'SET_RECORD_SYNC';
 export const SET_RECORD_DATE = 'SET_RECORD_DATE';
 export const SET_RECORD_COMMENT = 'SET_RECORD_COMMENT';
@@ -50,7 +51,7 @@ export function getElapsedTime ({ startTime, endTime }) {
     if (d.hours() !== 0) {
         outputString = `${d.hours()}h ` + outputString;
     }
-    if (d.days() !== 0) {
+    if (d.days() !== 0) {   
         outputString = `${d.days()}d ` + outputString;
     }
 
@@ -135,6 +136,13 @@ export function removeRecord ({ cuid }) {
         cuid
     };
 };
+export function splitRecord ( {cuid, task} ) {
+    return {
+        type: SPLIT_RECORD,
+        cuid,
+        task
+    };
+};
 
 // ------------------------------------
 // Action Handlers
@@ -178,6 +186,55 @@ const ACTION_HANDLERS = {
             ...initialState,
             records: stopRecordingInState({ state })
         }
+    },
+    [SPLIT_RECORD] : (state, action) => {
+        console.log('Splitting '+action.cuid);
+
+        /** Get the original record that we're working on - there should only be one */
+        let records = [...state.records];
+        let recordIndex = records.findIndex(r => r.cuid === action.cuid);
+        let originalRecord = {...records[recordIndex]};
+
+        /** Get the comment of the current record */
+        let originalComment = originalRecord.comment;
+        let splitComments = originalComment.split("|").map(s => s.trim())
+
+        if(splitComments.length == 2){
+            /** Get the running state of the record */
+            let isRunning = !originalRecord.endTime;
+            
+            /** Stop the record and set the endtime:
+             * either it is halfway between the start and end time,
+             * or it is halfway between the start and now
+            */
+            if(isRunning){
+                stopRecordingInState({state});
+            }        
+
+            /** Create a new record and:
+             * set the start time to the end time of the previous record
+             * set the state to the state of the previous record
+             * set the endtime to the 
+             */
+            const task = action.task;
+            const startTime = new Date();
+            const endTime = new Date();
+            endTime.setMinutes(endTime.getMinutes() + 1);
+    
+            const record = RecordModel({
+                task,
+                startTime,
+                endTime
+            });
+            record.comment = splitComments[1];
+    
+            records.push(record);    
+        }
+
+        return {
+            ...state,
+            records
+        };
     },
     [REMOVE_TASK] : (state, action) => {
 
