@@ -1,4 +1,5 @@
 import moment from 'moment';
+import debug from 'debug';
 
 import RecordModel from 'store/models/RecordModel';
 import TaskModel from 'store/models/TaskModel';
@@ -51,7 +52,7 @@ export function getElapsedTime ({ startTime, endTime }) {
     if (d.hours() !== 0) {
         outputString = `${d.hours()}h ` + outputString;
     }
-    if (d.days() !== 0) {   
+    if (d.days() !== 0) {
         outputString = `${d.days()}d ` + outputString;
     }
 
@@ -136,7 +137,7 @@ export function removeRecord ({ cuid }) {
         cuid
     };
 };
-export function splitRecord ( {cuid, task} ) {
+export function splitRecord ({ cuid, task }) {
     return {
         type: SPLIT_RECORD,
         cuid,
@@ -188,47 +189,66 @@ const ACTION_HANDLERS = {
         }
     },
     [SPLIT_RECORD] : (state, action) => {
-        console.log('Splitting '+action.cuid);
+        debug('Splitting ' + action.cuid);
 
-        /** Get the original record that we're working on - there should only be one */
+        /**
+         * Get the original record that we're working on.
+        */
         let records = [...state.records];
-        let recordIndex = records.findIndex(r => r.cuid === action.cuid);
-        let originalRecord = {...records[recordIndex]};
+        const recordIndex = records.findIndex(r => r.cuid === action.cuid);
+        const originalRecord = { ...records[recordIndex] };
 
-        /** Get the comment of the current record */
-        let originalComment = originalRecord.comment;
-        let splitComments = originalComment.split("|").map(s => s.trim())
+        /**
+         * Get the running state of the record, and
+         * if it's running, just exit for now.
+        */
+        // TODO End record, and create a new one.
+        if (originalRecord.endTime === undefined) {
+            return {
+                ...state,
+                records
+            };
+        }
 
-        if(splitComments.length == 2){
-            /** Get the running state of the record */
-            let isRunning = !originalRecord.endTime;
-            
-            /** Stop the record and set the endtime:
-             * either it is halfway between the start and end time,
-             * or it is halfway between the start and now
-            */
-            if(isRunning){
-                stopRecordingInState({state});
-            }        
+        /**
+         * Get the comment of the current record.
+         * Split the comment string and find the splits.
+        */
+        const originalComment = originalRecord.comment;
+        const splitComments = originalComment.split('|').map(s => s.trim())
 
+        /** Change the comment of the original record */
+        records = records.map((record) => {
+            if (record.cuid === action.cuid) {
+                return Object.assign({}, record, { comment: splitComments[0] })
+            }
+            return record;
+        })
+
+        if (splitComments.length > 1) {
             /** Create a new record and:
              * set the start time to the end time of the previous record
              * set the state to the state of the previous record
-             * set the endtime to the 
+             * set the endtime to the
              */
             const task = action.task;
             const startTime = new Date();
             const endTime = new Date();
             endTime.setMinutes(endTime.getMinutes() + 1);
-    
-            const record = RecordModel({
-                task,
-                startTime,
-                endTime
-            });
-            record.comment = splitComments[1];
-    
-            records.push(record);    
+
+            const newRecords = [];
+            for (let i = 1; i < splitComments.length; i++) {
+                // TODO set timing correct
+                const splitRecord = RecordModel({
+                    task,
+                    startTime,
+                    endTime
+                });
+                splitRecord.comment = splitComments[i];
+                newRecords.push(splitRecord);
+            }
+
+            records = Array.prototype.concat(records, newRecords);
         }
 
         return {
