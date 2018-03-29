@@ -59,6 +59,12 @@ export function getElapsedTime ({ startTime, endTime }) {
     return outputString;
 }
 
+const regex = /(\d+)m/;
+function getTimeFromWorklogComment (comment) {
+    let match = regex.exec(comment);
+    return match ? parseInt(match[1]) : 15;
+}
+
 // ------------------------------------
 // Actions
 // ------------------------------------
@@ -218,38 +224,49 @@ const ACTION_HANDLERS = {
 
         if (splitComments.length > 1) {
             const task = action.task; // the task we're splitting on
-            const originalStartTime = moment(originalRecord.startTime);
 
-            const endTime = moment(originalRecord.endTime);
-            const startTime = moment.unix((endTime.unix() - originalStartTime.unix()) / 2 + originalStartTime.unix());
+            /* Calculate the total time of the splits.
+             * Use the time found in the comment, or defaul to 15 if no time was found
+            */
+            let totalSplitTime = 0;
+            for (let i = 1; i < splitComments.length; i++) {
+                totalSplitTime += getTimeFromWorklogComment(splitComments[i])
+            }
+
+            /** Change the comment, endtime of the original record */
+            let newEndTime = moment(originalRecord.endTime).clone().subtract(totalSplitTime, 'minutes');
+            records = records.map((record) => {
+                if (record.cuid === action.cuid) {
+                    // const newEndtime = moment(record.endTime).clone().subtract(totalSplitTime,'minutes');
+                    return Object.assign({}, record, {
+                        comment: splitComments[0],
+                        endTime: newEndTime,
+                        elapsedTime: getElapsedTime({ startTime: moment(record.startTime), endTime: newEndTime })
+                    })
+                }
+                return record;
+            })
 
             const newRecords = [];
             for (let i = 1; i < splitComments.length; i++) {
-
                 /* Create a new record - and then set times afterward,
                  * since the function always set the startTime to new Date()
                  */
                 const splitRecord = RecordModel({
                     task
                 });
+                const startTime = newEndTime;
+                const endTime = newEndTime.clone().add(getTimeFromWorklogComment(splitComments[i]), 'minutes');
+
                 splitRecord.comment = splitComments[i];
                 splitRecord.startTime = startTime;
                 splitRecord.endTime = endTime;
                 splitRecord.elapsedTime = getElapsedTime({ startTime, endTime })
+
                 newRecords.push(splitRecord);
+                newEndTime = endTime;
             }
             records = Array.prototype.concat(records, newRecords);
-
-            /** Change the comment, endtime of the original record */
-            records = records.map((record) => {
-                if (record.cuid === action.cuid) {
-                    return Object.assign({}, record, {
-                        comment: splitComments[0],
-                        endTime: startTime
-                    })
-                }
-                return record;
-            })
         }
 
         return {
