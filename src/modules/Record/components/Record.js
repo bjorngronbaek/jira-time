@@ -6,6 +6,7 @@ import { issueIsClosed } from 'shared/taskHelper';
 import DateInput from 'modules/DateInput';
 
 import ExportIcon from 'assets/export-compact.svg';
+import SplitIcon from 'assets/split.svg';
 import LoadingIcon from 'assets/loading.svg';
 import DeleteIcon from 'assets/delete.svg';
 import MicIcon from 'assets/mic.svg';
@@ -231,11 +232,14 @@ export default class RecordItem extends Component {
             );
         }
 
-        let btnSplit = (
-            <span className='record-sync' title='Split this worklog' onClick={this.onSplitRecordClick}>
-                <img className='record-sync-icon' src={ExportIcon} alt='Split' />
-            </span>
-        )
+        let btnSplit;
+        if (record.endTime) {
+            btnSplit = (
+                <span className='record-sync' title='Split this worklog' onClick={this.onSplitRecordClick}>
+                    <img className='record-sync-icon' src={SplitIcon} alt='Split' />
+                </span>
+            );
+        }
 
         return (
             <div className={className} data-cuid={record.cuid} ref={e => this.recordElement = e}>

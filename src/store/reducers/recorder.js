@@ -202,7 +202,6 @@ const ACTION_HANDLERS = {
          * Get the running state of the record, and
          * if it's running, just exit for now.
         */
-        // TODO End record, and create a new one.
         if (originalRecord.endTime === undefined) {
             return {
                 ...state,
@@ -217,38 +216,44 @@ const ACTION_HANDLERS = {
         const originalComment = originalRecord.comment;
         const splitComments = originalComment.split('|').map(s => s.trim())
 
-        /** Change the comment of the original record */
-        records = records.map((record) => {
-            if (record.cuid === action.cuid) {
-                return Object.assign({}, record, { comment: splitComments[0] })
-            }
-            return record;
-        })
-
         if (splitComments.length > 1) {
+
             /** Create a new record and:
              * set the start time to the end time of the previous record
              * set the state to the state of the previous record
              * set the endtime to the
              */
+
             const task = action.task;
-            const startTime = new Date();
-            const endTime = new Date();
-            endTime.setMinutes(endTime.getMinutes() + 1);
+            const originalStartTime = moment(originalRecord.startTime);
+
+            const endTime = moment(originalRecord.endTime);
+            const startTime = moment.unix((endTime.unix() - originalStartTime.unix()) / 2 + originalStartTime.unix());
 
             const newRecords = [];
             for (let i = 1; i < splitComments.length; i++) {
                 // TODO set timing correct
                 const splitRecord = RecordModel({
-                    task,
-                    startTime,
-                    endTime
+                    task
                 });
                 splitRecord.comment = splitComments[i];
+                splitRecord.startTime = startTime;
+                splitRecord.endTime = endTime;
+                splitRecord.elapsedTime = getElapsedTime({ startTime, endTime })
                 newRecords.push(splitRecord);
             }
-
             records = Array.prototype.concat(records, newRecords);
+
+            /** Change the comment, endtime of the original record */
+            records = records.map((record) => {
+                if (record.cuid === action.cuid) {
+                    return Object.assign({}, record, {
+                        comment: splitComments[0],
+                        endTime: startTime
+                    })
+                }
+                return record;
+            })
         }
 
         return {
