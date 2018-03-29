@@ -233,7 +233,7 @@ export default class RecordItem extends Component {
         }
 
         let btnSplit;
-        if (record.endTime) {
+        if (profile.preferences.worklogSplitting && record.endTime) {
             btnSplit = (
                 <span className='record-sync' title='Split this worklog' onClick={this.onSplitRecordClick}>
                     <img className='record-sync-icon' src={SplitIcon} alt='Split' />

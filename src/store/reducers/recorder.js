@@ -217,14 +217,7 @@ const ACTION_HANDLERS = {
         const splitComments = originalComment.split('|').map(s => s.trim())
 
         if (splitComments.length > 1) {
-
-            /** Create a new record and:
-             * set the start time to the end time of the previous record
-             * set the state to the state of the previous record
-             * set the endtime to the
-             */
-
-            const task = action.task;
+            const task = action.task; // the task we're splitting on
             const originalStartTime = moment(originalRecord.startTime);
 
             const endTime = moment(originalRecord.endTime);
@@ -232,7 +225,10 @@ const ACTION_HANDLERS = {
 
             const newRecords = [];
             for (let i = 1; i < splitComments.length; i++) {
-                // TODO set timing correct
+
+                /* Create a new record - and then set times afterward,
+                 * since the function always set the startTime to new Date()
+                 */
                 const splitRecord = RecordModel({
                     task
                 });
