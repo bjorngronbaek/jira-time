@@ -255,7 +255,7 @@ export default class RecordItem extends Component {
                 </span>
             );
         }
-      
+
         let btnSplit;
         if (profile.preferences.worklogSplitting && record.endTime) {
             btnSplit = (

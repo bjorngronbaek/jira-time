@@ -10,7 +10,7 @@ const initialState = {
         enableVoiceRecording: false,
         enableAnimations: false,
         compactView: false,
-        enableJiraButton: false
+        enableJiraButton: false,
         worklogSplitting: false
     }
 };
