@@ -21,9 +21,11 @@ export default class RecordItem extends Component {
     static propTypes = {
         record: PropTypes.object.isRequired,
         task: PropTypes.object,
+        jiraIssueKeyTask: PropTypes.object,
         removeRecord: PropTypes.func.isRequired,
         setRecordDate: PropTypes.func.isRequired,
         setRecordComment: PropTypes.func.isRequired,
+        setRecordTask: PropTypes.func.isRequired,
         stopRecording: PropTypes.func.isRequired,
         splitRecord: PropTypes.func.isRequired,
         activeRecord: PropTypes.object,
@@ -44,6 +46,7 @@ export default class RecordItem extends Component {
         this.onSplitRecordClick = this.onSplitRecordClick.bind(this);
         this.onSpeechRecordClick = this.onSpeechRecordClick.bind(this);
         this.onCommentChange = this.onCommentChange.bind(this);
+        this.onJiraIssueKeyClick = this.onJiraIssueKeyClick.bind(this);
 
         this.state = {};
     }
@@ -171,6 +174,16 @@ export default class RecordItem extends Component {
         });
     }
 
+    onJiraIssueKeyClick () {
+        if (this.props.jiraIssueKeyTask) {
+            this.props.setRecordTask({
+                cuid: this.props.record.cuid,
+                taskCuid: this.props.jiraIssueKeyTask.cuid,
+                taskIssueKey: this.props.jiraIssueKeyTask.issue.key
+            });
+        }
+    }
+
     render () {
 
         let { record, task, movingRecord, movingTask, profile } = this.props;
@@ -232,6 +245,17 @@ export default class RecordItem extends Component {
             );
         }
 
+        let jiraIssueButton;
+        if (profile.preferences.enableJiraButton && record.jiraIssueKey) {
+            jiraIssueButton = (
+                <span className='record-sync' title='Move to task' >
+                    <div style={{ fontSize: '8px' }} className='record-sync-text' onClick={this.onJiraIssueKeyClick}>
+                        {record.jiraIssueKey}
+                    </div>
+                </span>
+            );
+        }
+      
         let btnSplit;
         if (profile.preferences.worklogSplitting && record.endTime) {
             btnSplit = (
@@ -274,6 +298,7 @@ export default class RecordItem extends Component {
                   tabIndex='0'
                   ref={e => this.inputComment = e}
                 />
+                {jiraIssueButton}
                 {btnMic}
                 {btnSync}
                 {btnSplit}

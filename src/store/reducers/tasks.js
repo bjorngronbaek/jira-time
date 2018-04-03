@@ -235,6 +235,9 @@ function naturalCompare (a, b) {
 // Getters
 // ------------------------------------
 export const getTask = ({ state, taskCuid }) => state.tasks.tasks.find(task => task.cuid === taskCuid);
+export const getTaskFromJiraIssueKey = ({ state, jiraIssueKey }) => {
+    return state.tasks.tasks.find(task => jiraIssueKey && task.issue.key.toLowerCase() === jiraIssueKey.toLowerCase());
+}
 export const getMovingTask = ({ state }) => state.tasks.tasks.find(task => task.moving);
 export const getTasksSortOrder = state => state.tasks.sortOrder;
 export const getTasksFilteredBySearch = ({ state }) => {
