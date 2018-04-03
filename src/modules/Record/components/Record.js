@@ -161,6 +161,10 @@ export default class RecordItem extends Component {
         });
     }
 
+    onJiraIssueKeyClick () {
+
+    }
+
     render () {
 
         let { record, task, movingRecord, movingTask, profile } = this.props;
@@ -222,6 +226,17 @@ export default class RecordItem extends Component {
             );
         }
 
+        let jiraIssueButton;
+        if (record.jiraIssueKey) {
+            jiraIssueButton = (
+                <span className='record-sync' title='Move to task' >
+                    <div style={{ fontSize: '8px' }} className='record-sync-text' onClick={this.onJiraIssueKeyClick}>
+                        {record.jiraIssueId}
+                    </div>
+                </span>
+            )
+        }
+
         return (
             <div className={className} data-cuid={record.cuid} ref={e => this.recordElement = e}>
                 <button tabIndex='-1' className='record-remove' onClick={this.onRemoveClick} disabled={record.syncing}>
@@ -255,6 +270,7 @@ export default class RecordItem extends Component {
                   tabIndex='0'
                   ref={e => this.inputComment = e}
                 />
+                {jiraIssueButton}
                 {btnMic}
                 {btnSync}
             </div>
