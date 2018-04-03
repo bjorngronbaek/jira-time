@@ -236,7 +236,7 @@ export default class RecordItem extends Component {
         }
 
         let jiraIssueButton;
-        if (record.jiraIssueKey) {
+        if (profile.preferences.enableJiraButton && record.jiraIssueKey) {
             jiraIssueButton = (
                 <span className='record-sync' title='Move to task' >
                     <div style={{ fontSize: '8px' }} className='record-sync-text' onClick={this.onJiraIssueKeyClick}>

@@ -106,6 +106,10 @@ export class Profile extends Component {
                                 label: 'Enable animations',
                                 property: 'enableAnimations'
                             })}
+                            {this.createPreferenceCheckboxField({
+                                label: 'Enable move to task button',
+                                property: 'enableJiraButton'
+                            })}
                         </div>
                     </div>
 
