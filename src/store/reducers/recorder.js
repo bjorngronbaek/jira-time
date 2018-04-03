@@ -5,6 +5,8 @@ import TaskModel from 'store/models/TaskModel';
 
 import { REMOVE_TASK } from 'store/reducers/tasks';
 
+import { extractIssueIdFromUrl } from 'shared/helpers'
+
 const initialState = {
     records: [],
     task: null
@@ -245,8 +247,10 @@ const ACTION_HANDLERS = {
         const records = state.records.map((record) => {
 
             if (record.cuid === action.cuid) {
+                let issueKey = extractIssueIdFromUrl(action.comment);
                 return Object.assign({}, record, {
-                    comment: action.comment
+                    comment: action.comment,
+                    jiraIssueKey: issueKey
                 });
             }
 

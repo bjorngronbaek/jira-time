@@ -20,9 +20,11 @@ export default class RecordItem extends Component {
     static propTypes = {
         record: PropTypes.object.isRequired,
         task: PropTypes.object,
+        jiraIssueKeyTask: PropTypes.object,
         removeRecord: PropTypes.func.isRequired,
         setRecordDate: PropTypes.func.isRequired,
         setRecordComment: PropTypes.func.isRequired,
+        setRecordTask: PropTypes.func.isRequired,
         stopRecording: PropTypes.func.isRequired,
         activeRecord: PropTypes.object,
         movingRecord: PropTypes.object,
@@ -41,6 +43,7 @@ export default class RecordItem extends Component {
         this.onStopRecordingClick = this.onStopRecordingClick.bind(this);
         this.onSpeechRecordClick = this.onSpeechRecordClick.bind(this);
         this.onCommentChange = this.onCommentChange.bind(this);
+        this.onJiraIssueKeyClick = this.onJiraIssueKeyClick.bind(this);
 
         this.state = {};
     }
@@ -162,7 +165,13 @@ export default class RecordItem extends Component {
     }
 
     onJiraIssueKeyClick () {
-
+        if (this.props.jiraIssueKeyTask) {
+            this.props.setRecordTask({
+                cuid: this.props.record.cuid,
+                taskCuid: this.props.jiraIssueKeyTask.cuid,
+                taskIssueKey: this.props.jiraIssueKeyTask.issue.key
+            });
+        }
     }
 
     render () {
@@ -231,7 +240,7 @@ export default class RecordItem extends Component {
             jiraIssueButton = (
                 <span className='record-sync' title='Move to task' >
                     <div style={{ fontSize: '8px' }} className='record-sync-text' onClick={this.onJiraIssueKeyClick}>
-                        {record.jiraIssueId}
+                        {record.jiraIssueKey}
                     </div>
                 </span>
             )
