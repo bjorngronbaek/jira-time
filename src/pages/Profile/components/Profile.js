@@ -102,6 +102,10 @@ export class Profile extends Component {
                                 label: 'Compact tasks view',
                                 property: 'compactView'
                             })}
+                            {this.createPreferenceCheckboxField({
+                                label: 'Enable worklog splitting',
+                                property: 'worklogSplitting'
+                            })}
                             {false && this.createPreferenceCheckboxField({
                                 label: 'Enable animations',
                                 property: 'enableAnimations'
