@@ -6,6 +6,7 @@ import { issueIsClosed } from 'shared/taskHelper';
 import DateInput from 'modules/DateInput';
 
 import ExportIcon from 'assets/export-compact.svg';
+import SplitIcon from 'assets/split.svg';
 import LoadingIcon from 'assets/loading.svg';
 import DeleteIcon from 'assets/delete.svg';
 import MicIcon from 'assets/mic.svg';
@@ -24,6 +25,7 @@ export default class RecordItem extends Component {
         setRecordDate: PropTypes.func.isRequired,
         setRecordComment: PropTypes.func.isRequired,
         stopRecording: PropTypes.func.isRequired,
+        splitRecord: PropTypes.func.isRequired,
         activeRecord: PropTypes.object,
         movingRecord: PropTypes.object,
         movingTask: PropTypes.object,
@@ -39,6 +41,7 @@ export default class RecordItem extends Component {
         this.onCommentKeyDown = this.onCommentKeyDown.bind(this);
         this.onSyncClick = this.onSyncClick.bind(this);
         this.onStopRecordingClick = this.onStopRecordingClick.bind(this);
+        this.onSplitRecordClick = this.onSplitRecordClick.bind(this);
         this.onSpeechRecordClick = this.onSpeechRecordClick.bind(this);
         this.onCommentChange = this.onCommentChange.bind(this);
 
@@ -127,6 +130,13 @@ export default class RecordItem extends Component {
 
     onStopRecordingClick () {
         this.props.stopRecording();
+    }
+
+    onSplitRecordClick () {
+        this.props.splitRecord({
+            cuid: this.props.record.cuid,
+            task: this.props.task
+        });
     }
 
     onSyncClick () {
@@ -222,6 +232,15 @@ export default class RecordItem extends Component {
             );
         }
 
+        let btnSplit;
+        if (profile.preferences.worklogSplitting && record.endTime) {
+            btnSplit = (
+                <span className='record-sync' title='Split this worklog' onClick={this.onSplitRecordClick}>
+                    <img className='record-sync-icon' src={SplitIcon} alt='Split' />
+                </span>
+            );
+        }
+
         return (
             <div className={className} data-cuid={record.cuid} ref={e => this.recordElement = e}>
                 <button tabIndex='-1' className='record-remove' onClick={this.onRemoveClick} disabled={record.syncing}>
@@ -257,6 +276,7 @@ export default class RecordItem extends Component {
                 />
                 {btnMic}
                 {btnSync}
+                {btnSplit}
             </div>
         );
     }

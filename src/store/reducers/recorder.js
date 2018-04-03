@@ -1,4 +1,5 @@
 import moment from 'moment';
+import debug from 'debug';
 
 import RecordModel from 'store/models/RecordModel';
 import TaskModel from 'store/models/TaskModel';
@@ -16,6 +17,7 @@ const initialState = {
 export const ADD_RECORDING = 'ADD_RECORDING';
 export const START_RECORDING = 'START_RECORDING';
 export const STOP_RECORDING = 'STOP_RECORDING';
+export const SPLIT_RECORD = 'SPLIT_RECORD';
 export const SET_RECORD_SYNC = 'SET_RECORD_SYNC';
 export const SET_RECORD_DATE = 'SET_RECORD_DATE';
 export const SET_RECORD_COMMENT = 'SET_RECORD_COMMENT';
@@ -55,6 +57,12 @@ export function getElapsedTime ({ startTime, endTime }) {
     }
 
     return outputString;
+}
+
+const regex = /(\d+)m/;
+function getTimeFromWorklogComment (comment) {
+    let match = regex.exec(comment);
+    return match ? parseInt(match[1]) : 15;
 }
 
 // ------------------------------------
@@ -135,6 +143,13 @@ export function removeRecord ({ cuid }) {
         cuid
     };
 };
+export function splitRecord ({ cuid, task }) {
+    return {
+        type: SPLIT_RECORD,
+        cuid,
+        task
+    };
+};
 
 // ------------------------------------
 // Action Handlers
@@ -178,6 +193,86 @@ const ACTION_HANDLERS = {
             ...initialState,
             records: stopRecordingInState({ state })
         }
+    },
+    [SPLIT_RECORD] : (state, action) => {
+        debug('Splitting ' + action.cuid);
+
+        /**
+         * Get the original record that we're working on.
+        */
+        let records = [...state.records];
+        const recordIndex = records.findIndex(r => r.cuid === action.cuid);
+        const originalRecord = { ...records[recordIndex] };
+
+        /**
+         * Get the running state of the record, and
+         * if it's running, just exit for now.
+        */
+        if (originalRecord.endTime === undefined) {
+            return {
+                ...state,
+                records
+            };
+        }
+
+        /**
+         * Get the comment of the current record.
+         * Split the comment string and find the splits.
+        */
+        const originalComment = originalRecord.comment;
+        const splitComments = originalComment.split('|').map(s => s.trim())
+
+        if (splitComments.length > 1) {
+            const task = action.task; // the task we're splitting on
+
+            /* Calculate the total time of the splits.
+             * Use the time found in the comment, or defaul to 15 if no time was found
+            */
+            let totalSplitTime = 0;
+            for (let i = 1; i < splitComments.length; i++) {
+                totalSplitTime += getTimeFromWorklogComment(splitComments[i])
+            }
+
+            /** Change the comment, endtime of the original record */
+            let newEndTime = moment(originalRecord.endTime).clone().subtract(totalSplitTime, 'minutes');
+            records = records.map((record) => {
+                if (record.cuid === action.cuid) {
+                    // const newEndtime = moment(record.endTime).clone().subtract(totalSplitTime,'minutes');
+                    return Object.assign({}, record, {
+                        comment: splitComments[0],
+                        endTime: newEndTime,
+                        elapsedTime: getElapsedTime({ startTime: moment(record.startTime), endTime: newEndTime })
+                    })
+                }
+                return record;
+            })
+
+            const newRecords = [];
+            for (let i = 1; i < splitComments.length; i++) {
+                /* Create a new record - and then set times afterward,
+                 * since the function always set the startTime to new Date()
+                 */
+                const splitRecord = RecordModel({
+                    task
+                });
+                const startTime = newEndTime;
+                const endTime = newEndTime.clone().add(getTimeFromWorklogComment(splitComments[i]), 'minutes');
+
+                splitRecord.comment = splitComments[i];
+                splitRecord.startTime = startTime;
+                splitRecord.endTime = endTime;
+                splitRecord.elapsedTime = getElapsedTime({ startTime, endTime })
+
+                newRecords.push(splitRecord);
+                newEndTime = endTime;
+            }
+            records = Array.prototype.concat(records, newRecords);
+        }
+
+        return {
+            ...state,
+            records
+        };
     },
     [REMOVE_TASK] : (state, action) => {
 
