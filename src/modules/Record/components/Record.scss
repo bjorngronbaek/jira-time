@@ -62,6 +62,15 @@
       }
     }
 
+    &-text {
+      cursor: pointer;
+      transition: opacity 250ms linear;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+
     &--stop {
       background: rgba(255, 255, 255, .9);
       width: 19px;
