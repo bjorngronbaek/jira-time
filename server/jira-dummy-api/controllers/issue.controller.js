@@ -38,19 +38,6 @@ api.watchIssue = function (req, res) {
     });
 }
 
-api.editMetaIssue = function (req, res) {
-    helpers.delay(function () {
-        // res.json({
-        //     fields : {
-        //         epiclink : {
-        //             name: 'Epic Link'
-        //         }
-        //     }
-        // })
-        res.status(204).send();
-    });
-}
-
 api.getWorklogs = function (req, res) {
     helpers.delay(function () {
         res.json({
