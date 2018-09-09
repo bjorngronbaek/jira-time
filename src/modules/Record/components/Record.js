@@ -64,8 +64,6 @@ export default class RecordItem extends Component {
             this.inputComment.select();
             if (this.inputComment.scrollIntoViewIfNeeded) {
                 this.inputComment.scrollIntoViewIfNeeded();
-            } else {
-                this.scrollIntoView();
             }
         }
     }
