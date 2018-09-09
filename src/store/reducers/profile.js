@@ -9,9 +9,7 @@ const initialState = {
         connectToSyncServer: true,
         enableVoiceRecording: false,
         enableAnimations: false,
-        compactView: false,
-        enableJiraButton: false,
-        worklogSplitting: false
+        compactView: false
     }
 };
 

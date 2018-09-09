@@ -9,14 +9,12 @@ import {
   setRecordMoveTarget,
   setRecordTask,
   getActiveRecord,
-  getMovingRecord,
-  splitRecord
+  getMovingRecord
 } from 'store/reducers/recorder';
 
 import {
     getTask,
-    getMovingTask,
-    getTaskFromJiraIssueKey
+    getMovingTask
 } from 'store/reducers/tasks';
 
 import Record from '../components/Record';
@@ -25,7 +23,6 @@ const mapStateToProps = (state, props) => {
     return {
         profile: state.profile,
         task: getTask({ state, taskCuid: props.record.taskCuid }),
-        jiraIssueKeyTask : getTaskFromJiraIssueKey({ state, jiraIssueKey: props.record.jiraIssueKey }),
         activeRecord: getActiveRecord({ state }),
         movingRecord: getMovingRecord({ state }),
         movingTask: getMovingTask({ state })
@@ -39,8 +36,7 @@ const mapDispatchToProps = {
     setRecordMoving,
     setRecordComment,
     setRecordTask,
-    setRecordMoveTarget,
-    splitRecord
+    setRecordMoveTarget
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(Record);
