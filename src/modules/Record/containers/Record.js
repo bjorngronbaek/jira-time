@@ -9,7 +9,8 @@ import {
     setRecordMoveTarget,
     setRecordTask,
     getActiveRecord,
-    getMovingRecord
+    getMovingRecord,
+    splitRecord
 } from 'store/reducers/recorder';
 
 import { getTask, getMovingTask } from 'store/reducers/tasks';
@@ -33,7 +34,8 @@ const mapDispatchToProps = {
     setRecordMoving,
     setRecordComment,
     setRecordTask,
-    setRecordMoveTarget
+    setRecordMoveTarget,
+    splitRecord
 };
 
 export default connect(

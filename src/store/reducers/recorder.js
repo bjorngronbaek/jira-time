@@ -10,6 +10,12 @@ const initialState = {
     task: null
 };
 
+const regex = /(\d+)m/;
+function getTimeFromWorklogComment (comment) {
+    const match = regex.exec(comment);
+    return match ? parseInt(match[1]) : 15; // If the is no time, we default to 15 minutes
+}
+
 // ------------------------------------
 // Constants
 // ------------------------------------
@@ -24,6 +30,7 @@ export const SET_RECORD_MOVE_TARGET = 'SET_RECORD_MOVE_TARGET';
 export const SET_RECORD_TASK = 'SET_RECORD_TASK';
 export const UPDATE_RECORD_ELAPSED = 'UPDATE_RECORD_ELAPSED';
 export const REMOVE_RECORD = 'REMOVE_RECORD';
+export const SPLIT_RECORD = 'SPLIT_RECORD';
 
 export function getElapsedTime({ startTime, endTime }) {
     startTime = moment(startTime);
@@ -129,6 +136,14 @@ export function removeRecord({ cuid }) {
     return {
         type: REMOVE_RECORD,
         cuid
+    };
+}
+
+export function splitRecord({ cuid, task }) {
+    return {
+        type: SPLIT_RECORD,
+        cuid,
+        task
     };
 }
 
@@ -321,6 +336,73 @@ const ACTION_HANDLERS = {
                 records.push(record);
             }
         });
+
+        return {
+            ...state,
+            records
+        };
+    },
+    [SPLIT_RECORD]: (state, action) => {
+
+        /* Find the record that was clicked, so we can see if it's ready for splitting */
+        let records = [...state.records];
+        const recordIndex = records.findIndex(r => r.cuid === action.cuid);
+        const originalRecord = { ...records[recordIndex] };
+
+        /* Check that the record is not running, so it can't be split yet */
+        if (originalRecord.endTime === undefined) {
+            return {
+                ...state,
+                records
+            };
+        }
+
+        /* Get the comment and see if has parts that can be split */
+        const splitComments = originalRecord.comment.split('|').map(s => s.trim());
+        if (splitComments.length > 1) {
+
+            /* calculate the time spent on splits - the first split is the "main" task, and keeps its own time */
+            let totalSplitTime = 0;
+            for (let i = 1; i < splitComments.length; i += 1) {
+                totalSplitTime += getTimeFromWorklogComment(splitComments[i]);
+            }
+
+            /* Check if the total split time exceeds the task time */
+            const endTime = moment(originalRecord.endTime);
+            const startTime = moment(originalRecord.startTime);
+            const taskTime = endTime.diff(startTime, 'minutes', true);
+            if (totalSplitTime < taskTime) {
+                /* Reduce the time of the original record with the total split time and set the comment */
+                const newEndTime = endTime.clone().subtract(totalSplitTime, 'minutes');
+                records = records.map(record => {
+                    if (record.cuid === action.cuid) {
+                        return Object.assign({}, record, {
+                            comment: splitComments[0],
+                            endTime: newEndTime,
+                            elapsedTime: `${newEndTime.diff(startTime, 'minutes', true)}m` // TODO should use getElapsedTime instead
+                        });
+                    }
+
+                    return record;
+                });
+
+                // TODO create the new records from the splits
+                let recordStartTime = newEndTime;
+                const { task } = action;
+                for (let i = 1; i < splitComments.length; i += 1) {
+                    const record = RecordModel({ task });
+
+                    record.comment = splitComments[i].replace(regex, '');
+                    record.startTime = recordStartTime.clone();
+                    record.endTime = recordStartTime.clone().add(getTimeFromWorklogComment(splitComments[i]), 'minutes');
+                    record.elapsedTime = `${record.endTime.diff(record.startTime, 'minutes', true)}m`; // TODO should use getElapsedTime instead
+
+                    recordStartTime = record.endTime;
+
+                    records.push(record);
+                }
+            }
+        }
 
         return {
             ...state,

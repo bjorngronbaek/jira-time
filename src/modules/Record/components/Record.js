@@ -42,6 +42,7 @@ export default class RecordItem extends Component {
         this.onStopRecordingClick = this.onStopRecordingClick.bind(this);
         this.onSpeechRecordClick = this.onSpeechRecordClick.bind(this);
         this.onCommentChange = this.onCommentChange.bind(this);
+        this.onSplitWorklogClick = this.onSplitWorklogClick.bind(this);
 
         this.state = {};
     }
@@ -163,7 +164,10 @@ export default class RecordItem extends Component {
     }
 
     onSplitWorklogClick() {
-        //do nothing for now
+        this.props.splitRecord({
+            cuid: this.props.record.cuid,
+            task: this.props.task
+        });
     }
 
     render() {
@@ -231,7 +235,7 @@ export default class RecordItem extends Component {
         let btnSplit;
         if(profile.preferences.enableWorklogSplitting && record.endTime) {
             btnSplit = (
-                <span className='record-sync' title='Split this worklog'>
+                <span className='record-sync' title='Split this worklog' onClick={this.onSplitWorklogClick}>
                     <img className='record-sync-icon' src={SplitIcon} alt='Split' />
                 </span>
             );
