@@ -120,6 +120,10 @@ export class Profile extends Component {
                                     label: 'Enable animations',
                                     property: 'enableAnimations'
                                 })}
+                            {this.createPreferenceCheckboxField({
+                                label: 'Enable worklog splitting',
+                                property: 'enableWorklogSplitting'
+                            })}
                         </div>
                     </div>
 
