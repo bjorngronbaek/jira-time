@@ -11,6 +11,7 @@ import LoadingIcon from 'assets/loading.svg';
 import DeleteIcon from 'assets/delete.svg';
 import MicIcon from 'assets/mic.svg';
 import MicRedIcon from 'assets/mic-red.svg';
+import SplitIcon from 'assets/split.svg';
 
 import './Record.scss';
 
@@ -161,6 +162,10 @@ export default class RecordItem extends Component {
         });
     }
 
+    onSplitWorklogClick() {
+        //do nothing for now
+    }
+
     render() {
         let { record, task, movingRecord, movingTask, profile } = this.props;
         const { enableVoiceRecording, compactView } = profile.preferences;
@@ -223,6 +228,15 @@ export default class RecordItem extends Component {
             );
         }
 
+        let btnSplit;
+        if(profile.preferences.enableWorklogSplitting && record.endTime) {
+            btnSplit = (
+                <span className='record-sync' title='Split this worklog'>
+                    <img className='record-sync-icon' src={SplitIcon} alt='Split' />
+                </span>
+            );
+        }
+
         return (
             <div className={className} data-cuid={record.cuid} ref={e => (this.recordElement = e)}>
                 <button tabIndex="-1" className="record-remove" onClick={this.onRemoveClick} disabled={record.syncing}>
@@ -256,6 +270,7 @@ export default class RecordItem extends Component {
                 />
                 {btnMic}
                 {btnSync}
+                {btnSplit}
             </div>
         );
     }
